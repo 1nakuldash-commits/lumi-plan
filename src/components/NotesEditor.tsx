@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Save, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Edit3, Save, Calendar, X, Tag } from "lucide-react";
 
 interface Note {
   id: string;
@@ -14,6 +15,8 @@ interface Note {
   createdAt: Date;
   updatedAt: Date;
 }
+
+const PREDEFINED_TAGS = ["review", "goals", "meeting", "work", "ideas", "projects", "personal", "urgent"];
 
 export const NotesEditor = () => {
   const [notes, setNotes] = useState<Note[]>([
@@ -47,6 +50,7 @@ export const NotesEditor = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
 
   const createNewNote = () => {
@@ -62,17 +66,23 @@ export const NotesEditor = () => {
     setSelectedNote(newNote);
     setEditTitle("Untitled Note");
     setEditContent("");
+    setEditTags([]);
     setIsEditing(true);
   };
 
   const saveNote = () => {
     if (selectedNote) {
+      const updatedNote = { 
+        ...selectedNote, 
+        title: editTitle, 
+        content: editContent, 
+        tags: editTags,
+        updatedAt: new Date() 
+      };
       setNotes(notes.map(note => 
-        note.id === selectedNote.id 
-          ? { ...note, title: editTitle, content: editContent, updatedAt: new Date() }
-          : note
+        note.id === selectedNote.id ? updatedNote : note
       ));
-      setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
+      setSelectedNote(updatedNote);
       setIsEditing(false);
     }
   };
@@ -81,7 +91,19 @@ export const NotesEditor = () => {
     setSelectedNote(note);
     setEditTitle(note.title);
     setEditContent(note.content);
+    setEditTags(note.tags);
     setIsEditing(false);
+  };
+
+  const addTag = (tag: string) => {
+    if (tag && !editTags.includes(tag)) {
+      setEditTags([...editTags, tag]);
+    }
+    setNewTag("");
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setEditTags(editTags.filter(tag => tag !== tagToRemove));
   };
 
   const formatDate = (date: Date) => {
@@ -197,18 +219,77 @@ export const NotesEditor = () => {
             </div>
             
             <div className="p-4 border-t border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  {selectedNote.tags.map(tag => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Tags</span>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {editTags.map(tag => (
+                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <X 
+                          className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                          onClick={() => removeTag(tag)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Select onValueChange={addTag}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Add tag..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PREDEFINED_TAGS.filter(tag => !editTags.includes(tag)).map(tag => (
+                          <SelectItem key={tag} value={tag}>
+                            {tag}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="flex gap-1">
+                      <Input
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        placeholder="Custom tag..."
+                        className="w-32"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addTag(newTag);
+                          }
+                        }}
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => addTag(newTag)}
+                        disabled={!newTag || editTags.includes(newTag)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Updated {formatDate(selectedNote.updatedAt)}
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2">
+                    {selectedNote.tags.map(tag => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Updated {formatDate(selectedNote.updatedAt)}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Card>
         ) : (
