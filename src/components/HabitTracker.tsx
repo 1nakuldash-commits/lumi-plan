@@ -106,47 +106,47 @@ export const HabitTracker = () => {
   const averageStreak = habits.length > 0 ? habits.reduce((sum, h) => sum + h.streak, 0) / habits.length : 0;
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-        <Card className="p-3 md:p-4 bg-card shadow-card border-border">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="p-4 bg-card shadow-card border-border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Today's Progress</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">{completedToday}/{totalHabits}</p>
+              <p className="text-sm text-muted-foreground">Today's Progress</p>
+              <p className="text-2xl font-bold text-foreground">{completedToday}/{totalHabits}</p>
             </div>
-            <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-success" />
+            <CheckCircle2 className="w-8 h-8 text-success" />
           </div>
         </Card>
         
-        <Card className="p-3 md:p-4 bg-card shadow-card border-border">
+        <Card className="p-4 bg-card shadow-card border-border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Average Streak</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">{Math.round(averageStreak)} days</p>
+              <p className="text-sm text-muted-foreground">Average Streak</p>
+              <p className="text-2xl font-bold text-foreground">{Math.round(averageStreak)} days</p>
             </div>
-            <Flame className="w-6 h-6 md:w-8 md:h-8 text-warning" />
+            <Flame className="w-8 h-8 text-warning" />
           </div>
         </Card>
         
-        <Card className="p-3 md:p-4 bg-card shadow-card border-border">
+        <Card className="p-4 bg-card shadow-card border-border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs md:text-sm text-muted-foreground">Completion Rate</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">
+              <p className="text-sm text-muted-foreground">Completion Rate</p>
+              <p className="text-2xl font-bold text-foreground">
                 {totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0}%
               </p>
             </div>
-            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-primary"></div>
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+              <div className="w-4 h-4 rounded-full bg-primary"></div>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Add new habit */}
-      <Card className="p-3 md:p-4 bg-card shadow-card border-border">
-        <div className="flex flex-col md:flex-row gap-2 md:gap-2">
+      <Card className="p-4 bg-card shadow-card border-border">
+        <div className="flex space-x-2">
           <Input
             placeholder="Add a new habit..."
             value={newHabit}
@@ -154,7 +154,7 @@ export const HabitTracker = () => {
             onKeyPress={(e) => e.key === "Enter" && addHabit()}
             className="flex-1 bg-input border-border text-foreground"
           />
-          <Button onClick={addHabit} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full md:w-auto">
+          <Button onClick={addHabit} className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus className="w-4 h-4 mr-2" />
             Add Habit
           </Button>
@@ -162,46 +162,48 @@ export const HabitTracker = () => {
       </Card>
 
       {/* Habits List */}
-      <div className="grid gap-3 md:gap-4">
+      <div className="grid gap-4">
         {habits.map(habit => (
-          <Card key={habit.id} className="p-4 md:p-6 bg-card shadow-card border-border hover:shadow-hover transition-all duration-200 touch-manipulation">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center space-x-3 md:space-x-4 flex-1 min-w-0">
+          <Card key={habit.id} className="p-6 bg-card shadow-card border-border hover:shadow-hover transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 flex-1">
                 <Button
                   size="sm"
                   onClick={() => toggleHabit(habit.id)}
-                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full p-0 shrink-0 ${
+                  className={`w-10 h-10 rounded-full p-0 ${
                     habit.completedToday
                       ? "bg-success text-success-foreground hover:bg-success/90"
                       : "bg-secondary border-2 border-border text-muted-foreground hover:bg-accent"
                   }`}
                 >
                   {habit.completedToday ? (
-                    <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />
+                    <CheckCircle2 className="w-5 h-5" />
                   ) : (
-                    <Circle className="w-4 h-4 md:w-5 md:h-5" />
+                    <Circle className="w-5 h-5" />
                   )}
                 </Button>
                 
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm md:text-base font-medium text-foreground truncate">
+                <div className="flex-1">
+                  <h3 className={`font-medium ${
+                    habit.completedToday ? "text-foreground" : "text-foreground"
+                  }`}>
                     {habit.name}
                   </h3>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2">
+                  <div className="flex items-center space-x-4 mt-2">
                     <div className="flex items-center space-x-1">
-                      <span className="text-base md:text-lg">{getStreakIcon(habit.streak)}</span>
-                      <span className="text-xs md:text-sm text-muted-foreground">
-                        {habit.streak} day{habit.streak !== 1 ? 's' : ''}
+                      <span className="text-lg">{getStreakIcon(habit.streak)}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {habit.streak} day streak
                       </span>
                     </div>
-                    <div className="flex-1 md:max-w-xs">
-                      <div className="flex justify-between text-xs md:text-sm text-muted-foreground mb-1">
-                        <span>{habit.completedDays}/{habit.totalDays}</span>
+                    <div className="flex-1 max-w-xs">
+                      <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                        <span>{habit.completedDays}/{habit.totalDays} completed</span>
                         <span>{Math.round(getCompletionPercentage(habit))}%</span>
                       </div>
                       <Progress 
                         value={getCompletionPercentage(habit)} 
-                        className="h-1.5 md:h-2"
+                        className="h-2"
                       />
                     </div>
                   </div>
@@ -209,7 +211,7 @@ export const HabitTracker = () => {
               </div>
               
               <Badge 
-                className={`text-xs shrink-0 ${
+                className={`ml-4 ${
                   habit.completedToday 
                     ? "bg-success/10 text-success" 
                     : "bg-muted text-muted-foreground"
@@ -222,11 +224,11 @@ export const HabitTracker = () => {
         ))}
         
         {habits.length === 0 && (
-          <Card className="p-6 md:p-8 bg-card shadow-card border-border text-center">
+          <Card className="p-8 bg-card shadow-card border-border text-center">
             <div className="text-muted-foreground">
-              <Target className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 opacity-50" />
-              <h3 className="text-base md:text-lg font-medium mb-2">No habits yet</h3>
-              <p className="text-sm md:text-base">Start building better habits by adding your first one above</p>
+              <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-medium mb-2">No habits yet</h3>
+              <p>Start building better habits by adding your first one above</p>
             </div>
           </Card>
         )}
