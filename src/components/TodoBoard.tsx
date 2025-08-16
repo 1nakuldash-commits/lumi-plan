@@ -89,10 +89,10 @@ export const TodoBoard = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Add new todo */}
-        <Card className="p-4 bg-card shadow-card border-border animate-fade-in">
-          <div className="flex space-x-2">
+        <Card className="p-3 md:p-4 bg-card shadow-card border-border animate-fade-in">
+          <div className="flex flex-col md:flex-row gap-2 md:gap-2">
             <Input
               placeholder="Add a new task..."
               value={newTodo}
@@ -100,7 +100,7 @@ export const TodoBoard = () => {
               onKeyPress={(e) => e.key === "Enter" && addTodo()}
               className="flex-1 bg-input border-border text-foreground transition-all duration-200 focus:ring-2 focus:ring-primary/20"
             />
-            <Button onClick={addTodo} className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95">
+            <Button onClick={addTodo} className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 w-full md:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Task
             </Button>
@@ -108,13 +108,13 @@ export const TodoBoard = () => {
         </Card>
 
         {/* Todo columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {columns.map((column, columnIndex) => (
             <Card key={column.id} className="bg-card shadow-card border-border animate-fade-in" style={{ animationDelay: `${columnIndex * 100}ms` }}>
-              <div className="p-4 border-b border-border">
+              <div className="p-3 md:p-4 border-b border-border">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">{column.title}</h3>
-                  <Badge className={`${getStatusBadge(column.status)} transition-all duration-200 animate-scale-in`}>
+                  <h3 className="text-sm md:text-base font-semibold text-foreground">{column.title}</h3>
+                  <Badge className={`${getStatusBadge(column.status)} transition-all duration-200 animate-scale-in text-xs`}>
                     {column.count}
                   </Badge>
                 </div>
@@ -125,7 +125,7 @@ export const TodoBoard = () => {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`p-4 space-y-3 min-h-[400px] transition-all duration-300 ${
+                    className={`p-3 md:p-4 space-y-2 md:space-y-3 min-h-[300px] md:min-h-[400px] transition-all duration-300 ${
                       snapshot.isDraggingOver 
                         ? "bg-primary/5 border-primary/20 border-2 border-dashed" 
                         : ""
@@ -137,20 +137,22 @@ export const TodoBoard = () => {
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            className={`group p-3 bg-secondary rounded-lg border border-border transition-all duration-200 cursor-grab active:cursor-grabbing ${
+                            className={`group p-3 bg-secondary rounded-lg border border-border transition-all duration-200 cursor-grab active:cursor-grabbing touch-manipulation ${
                               snapshot.isDragging 
                                 ? "shadow-2xl scale-105 rotate-2 bg-card border-primary/30" 
-                                : "hover:shadow-hover hover:scale-[1.02] hover:-translate-y-0.5"
+                                : "hover:shadow-hover hover:scale-[1.02] hover:-translate-y-0.5 active:scale-95"
                             }`}
                             style={provided.draggableProps.style}
                           >
                             <div className="flex items-start justify-between">
-                              <div className="flex items-start space-x-2 flex-1">
-                                <div {...provided.dragHandleProps} className="mt-0.5 opacity-0 group-hover:opacity-60 transition-opacity duration-200">
+                              <div className="flex items-start space-x-2 flex-1 min-w-0">
+                                <div {...provided.dragHandleProps} className="mt-0.5 opacity-60 md:opacity-0 md:group-hover:opacity-60 transition-opacity duration-200 shrink-0">
                                   <GripVertical className="w-3 h-3 text-muted-foreground" />
                                 </div>
-                                {getStatusIcon(todo.status)}
-                                <span className={`text-sm transition-all duration-200 ${
+                                <div className="shrink-0 mt-0.5">
+                                  {getStatusIcon(todo.status)}
+                                </div>
+                                <span className={`text-xs md:text-sm transition-all duration-200 break-words ${
                                   todo.status === "completed" 
                                     ? "line-through text-muted-foreground" 
                                     : "text-foreground"
@@ -160,13 +162,13 @@ export const TodoBoard = () => {
                               </div>
                             </div>
                             
-                            <div className="flex space-x-1 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+                            <div className="flex flex-wrap gap-1 mt-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 transform translate-y-0 md:translate-y-1 md:group-hover:translate-y-0">
                               {todo.status !== "pending" && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => updateTodoStatus(todo.id, "pending")}
-                                  className="h-6 px-2 text-xs hover:bg-warning/10 hover:text-warning transition-all duration-200 hover:scale-105"
+                                  className="h-6 px-2 text-xs hover:bg-warning/10 hover:text-warning transition-all duration-200 hover:scale-105 active:scale-95"
                                 >
                                   Pending
                                 </Button>
@@ -176,7 +178,7 @@ export const TodoBoard = () => {
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => updateTodoStatus(todo.id, "progress")}
-                                  className="h-6 px-2 text-xs hover:bg-info/10 hover:text-info transition-all duration-200 hover:scale-105"
+                                  className="h-6 px-2 text-xs hover:bg-info/10 hover:text-info transition-all duration-200 hover:scale-105 active:scale-95"
                                 >
                                   Progress
                                 </Button>
@@ -186,7 +188,7 @@ export const TodoBoard = () => {
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => updateTodoStatus(todo.id, "completed")}
-                                  className="h-6 px-2 text-xs hover:bg-success/10 hover:text-success transition-all duration-200 hover:scale-105"
+                                  className="h-6 px-2 text-xs hover:bg-success/10 hover:text-success transition-all duration-200 hover:scale-105 active:scale-95"
                                 >
                                   Done
                                 </Button>
@@ -198,10 +200,10 @@ export const TodoBoard = () => {
                     ))}
                     {provided.placeholder}
                     {filterTodosByStatus(column.status).length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <Circle className="w-8 h-8 mb-2 opacity-50" />
-                        <p className="text-sm">No tasks yet</p>
-                        <p className="text-xs">Drag tasks here or create new ones</p>
+                      <div className="flex flex-col items-center justify-center py-8 md:py-12 text-muted-foreground">
+                        <Circle className="w-6 h-6 md:w-8 md:h-8 mb-2 opacity-50" />
+                        <p className="text-xs md:text-sm text-center">No tasks yet</p>
+                        <p className="text-xs text-center">Drag tasks here or create new ones</p>
                       </div>
                     )}
                   </div>
