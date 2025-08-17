@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      habits: {
+        Row: {
+          color: string
+          completed_days: number
+          completed_today: boolean
+          created_at: string
+          id: string
+          name: string
+          streak: number
+          total_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          completed_days?: number
+          completed_today?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          streak?: number
+          total_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          completed_days?: number
+          completed_today?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          streak?: number
+          total_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -39,6 +108,33 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      todos: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          title?: string
           updated_at?: string
           user_id?: string
         }

@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Circle, Clock, CheckCircle, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface Todo {
   id: string;
@@ -14,33 +17,102 @@ interface Todo {
 }
 
 export const TodoBoard = () => {
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: "1", title: "Review project proposal", status: "pending", createdAt: new Date() },
-    { id: "2", title: "Update portfolio website", status: "progress", createdAt: new Date() },
-    { id: "3", title: "Morning workout", status: "completed", createdAt: new Date() },
-    { id: "4", title: "Call client about requirements", status: "pending", createdAt: new Date() },
-    { id: "5", title: "Fix bug in authentication", status: "progress", createdAt: new Date() },
-    { id: "6", title: "Read 30 minutes", status: "completed", createdAt: new Date() },
-  ]);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const addTodo = () => {
-    if (newTodo.trim()) {
-      setTodos([
-        ...todos,
-        {
-          id: Date.now().toString(),
-          title: newTodo,
-          status: "pending",
-          createdAt: new Date(),
-        },
-      ]);
-      setNewTodo("");
+  useEffect(() => {
+    if (user) {
+      fetchTodos();
+    }
+  }, [user]);
+
+  const fetchTodos = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setTodos(data.map(todo => ({
+        ...todo,
+        status: todo.status as Todo["status"],
+        createdAt: new Date(todo.created_at)
+      })));
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch todos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateTodoStatus = (id: string, status: Todo["status"]) => {
-    setTodos(todos.map(todo => todo.id === id ? { ...todo, status } : todo));
+  const addTodo = async () => {
+    if (newTodo.trim() && user) {
+      try {
+        const { data, error } = await supabase
+          .from('todos')
+          .insert([{
+            title: newTodo,
+            status: "pending",
+            user_id: user.id
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setTodos([{
+          ...data,
+          status: data.status as Todo["status"],
+          createdAt: new Date(data.created_at)
+        }, ...todos]);
+        setNewTodo("");
+        
+        toast({
+          title: "Success",
+          description: "Todo added successfully",
+        });
+      } catch (error) {
+        console.error('Error adding todo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add todo",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const updateTodoStatus = async (id: string, status: Todo["status"]) => {
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setTodos(todos.map(todo => todo.id === id ? { ...todo, status } : todo));
+    } catch (error) {
+      console.error('Error updating todo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update todo",
+        variant: "destructive",
+      });
+    }
   };
 
   const onDragEnd = (result: DropResult) => {
@@ -86,6 +158,16 @@ export const TodoBoard = () => {
     { id: "progress", title: "In Progress", status: "progress" as const, count: filterTodosByStatus("progress").length },
     { id: "completed", title: "Completed", status: "completed" as const, count: filterTodosByStatus("completed").length },
   ];
+
+  if (loading) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Card className="p-4 bg-card shadow-card border-border">
+          <div className="text-center">Loading todos...</div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>

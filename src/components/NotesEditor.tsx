@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit3, Save, Calendar, X, Tag } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface Note {
   id: string;
@@ -19,71 +22,136 @@ interface Note {
 const PREDEFINED_TAGS = ["review", "goals", "meeting", "work", "ideas", "projects", "personal", "urgent"];
 
 export const NotesEditor = () => {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      title: "Project Ideas",
-      content: "• Build a productivity app with notion-like interface\n• Create a habit tracker with streaks\n• Develop a note-taking system with tags",
-      tags: ["ideas", "projects"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "2",
-      title: "Meeting Notes",
-      content: "Discussed the Q4 roadmap:\n- Focus on user experience improvements\n- Implement real-time collaboration features\n- Optimize performance for mobile devices",
-      tags: ["meetings", "work"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "3",
-      title: "Weekly Review",
-      content: "This week's achievements:\n✅ Completed the authentication system\n✅ Fixed 5 critical bugs\n✅ Improved page load times by 30%\n\nNext week's goals:\n• Launch beta version\n• Gather user feedback\n• Plan next iteration",
-      tags: ["review", "goals"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
-
+  const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editTags, setEditTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const createNewNote = () => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: "Untitled Note",
-      content: "",
-      tags: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setNotes([newNote, ...notes]);
-    setSelectedNote(newNote);
-    setEditTitle("Untitled Note");
-    setEditContent("");
-    setEditTags([]);
-    setIsEditing(true);
+  useEffect(() => {
+    if (user) {
+      fetchNotes();
+    }
+  }, [user]);
+
+  const fetchNotes = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setNotes(data.map(note => ({
+        ...note,
+        createdAt: new Date(note.created_at),
+        updatedAt: new Date(note.updated_at)
+      })));
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch notes",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const saveNote = () => {
-    if (selectedNote) {
-      const updatedNote = { 
-        ...selectedNote, 
-        title: editTitle, 
-        content: editContent, 
-        tags: editTags,
-        updatedAt: new Date() 
+  const createNewNote = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .insert([{
+          title: "Untitled Note",
+          content: "",
+          tags: [],
+          user_id: user.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newNote: Note = {
+        ...data,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
       };
-      setNotes(notes.map(note => 
-        note.id === selectedNote.id ? updatedNote : note
-      ));
-      setSelectedNote(updatedNote);
-      setIsEditing(false);
+
+      setNotes([newNote, ...notes]);
+      setSelectedNote(newNote);
+      setEditTitle("Untitled Note");
+      setEditContent("");
+      setEditTags([]);
+      setIsEditing(true);
+      
+      toast({
+        title: "Success",
+        description: "Note created successfully",
+      });
+    } catch (error) {
+      console.error('Error creating note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create note",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveNote = async () => {
+    if (selectedNote) {
+      try {
+        const { error } = await supabase
+          .from('notes')
+          .update({
+            title: editTitle,
+            content: editContent,
+            tags: editTags
+          })
+          .eq('id', selectedNote.id);
+
+        if (error) throw error;
+
+        const updatedNote = { 
+          ...selectedNote, 
+          title: editTitle, 
+          content: editContent, 
+          tags: editTags,
+          updatedAt: new Date() 
+        };
+        
+        setNotes(notes.map(note => 
+          note.id === selectedNote.id ? updatedNote : note
+        ));
+        setSelectedNote(updatedNote);
+        setIsEditing(false);
+        
+        toast({
+          title: "Success",
+          description: "Note saved successfully",
+        });
+      } catch (error) {
+        console.error('Error saving note:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save note",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -114,6 +182,16 @@ export const NotesEditor = () => {
       minute: '2-digit',
     }).format(date);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Card className="p-4 bg-card shadow-card border-border">
+          <div className="text-center">Loading notes...</div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 h-[calc(100vh-160px)] md:h-[calc(100vh-200px)]">

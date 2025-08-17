@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Plus, Flame, CheckCircle2, Circle, Target } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface Habit {
   id: string;
@@ -17,78 +20,132 @@ interface Habit {
 }
 
 export const HabitTracker = () => {
-  const [habits, setHabits] = useState<Habit[]>([
-    {
-      id: "1",
-      name: "Morning Workout",
-      streak: 7,
-      completedToday: true,
-      totalDays: 30,
-      completedDays: 25,
-      color: "success",
-    },
-    {
-      id: "2",
-      name: "Read for 30 minutes",
-      streak: 5,
-      completedToday: true,
-      totalDays: 30,
-      completedDays: 22,
-      color: "info",
-    },
-    {
-      id: "3",
-      name: "Drink 8 glasses of water",
-      streak: 3,
-      completedToday: false,
-      totalDays: 30,
-      completedDays: 18,
-      color: "primary",
-    },
-    {
-      id: "4",
-      name: "Meditate",
-      streak: 12,
-      completedToday: true,
-      totalDays: 30,
-      completedDays: 28,
-      color: "warning",
-    },
-  ]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabit, setNewHabit] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const addHabit = () => {
-    if (newHabit.trim()) {
-      setHabits([
-        ...habits,
-        {
-          id: Date.now().toString(),
-          name: newHabit,
-          streak: 0,
-          completedToday: false,
-          totalDays: 0,
-          completedDays: 0,
-          color: "primary",
-        },
-      ]);
-      setNewHabit("");
+  useEffect(() => {
+    if (user) {
+      fetchHabits();
+    }
+  }, [user]);
+
+  const fetchHabits = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setHabits(data.map(habit => ({
+        ...habit,
+        completedToday: habit.completed_today,
+        totalDays: habit.total_days,
+        completedDays: habit.completed_days
+      })));
+    } catch (error) {
+      console.error('Error fetching habits:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch habits",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const toggleHabit = (id: string) => {
-    setHabits(habits.map(habit => {
-      if (habit.id === id) {
-        const newCompletedToday = !habit.completedToday;
-        return {
-          ...habit,
-          completedToday: newCompletedToday,
-          streak: newCompletedToday ? habit.streak + 1 : Math.max(0, habit.streak - 1),
-          completedDays: newCompletedToday ? habit.completedDays + 1 : Math.max(0, habit.completedDays - 1),
-          totalDays: Math.max(habit.totalDays, habit.completedDays + (newCompletedToday ? 1 : 0)),
-        };
+  const addHabit = async () => {
+    if (newHabit.trim() && user) {
+      try {
+        const { data, error } = await supabase
+          .from('habits')
+          .insert([{
+            name: newHabit,
+            streak: 0,
+            completed_today: false,
+            total_days: 0,
+            completed_days: 0,
+            color: "primary",
+            user_id: user.id
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setHabits([{
+          ...data,
+          completedToday: data.completed_today,
+          totalDays: data.total_days,
+          completedDays: data.completed_days
+        }, ...habits]);
+        setNewHabit("");
+        
+        toast({
+          title: "Success",
+          description: "Habit added successfully",
+        });
+      } catch (error) {
+        console.error('Error adding habit:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add habit",
+          variant: "destructive",
+        });
       }
-      return habit;
-    }));
+    }
+  };
+
+  const toggleHabit = async (id: string) => {
+    const habit = habits.find(h => h.id === id);
+    if (!habit) return;
+
+    const newCompletedToday = !habit.completedToday;
+    const newStreak = newCompletedToday ? habit.streak + 1 : Math.max(0, habit.streak - 1);
+    const newCompletedDays = newCompletedToday ? habit.completedDays + 1 : Math.max(0, habit.completedDays - 1);
+    const newTotalDays = Math.max(habit.totalDays, newCompletedDays);
+
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({
+          completed_today: newCompletedToday,
+          streak: newStreak,
+          completed_days: newCompletedDays,
+          total_days: newTotalDays
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setHabits(habits.map(h => {
+        if (h.id === id) {
+          return {
+            ...h,
+            completedToday: newCompletedToday,
+            streak: newStreak,
+            completedDays: newCompletedDays,
+            totalDays: newTotalDays,
+          };
+        }
+        return h;
+      }));
+    } catch (error) {
+      console.error('Error updating habit:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update habit",
+        variant: "destructive",
+      });
+    }
   };
 
   const getCompletionPercentage = (habit: Habit) => {
@@ -104,6 +161,16 @@ export const HabitTracker = () => {
   const totalHabits = habits.length;
   const completedToday = habits.filter(h => h.completedToday).length;
   const averageStreak = habits.length > 0 ? habits.reduce((sum, h) => sum + h.streak, 0) / habits.length : 0;
+
+  if (loading) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Card className="p-4 bg-card shadow-card border-border">
+          <div className="text-center">Loading habits...</div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
