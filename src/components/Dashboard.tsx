@@ -3,17 +3,24 @@ import { Card } from "@/components/ui/card";
 import { TodoBoard } from "@/components/TodoBoard";
 import { NotesEditor } from "@/components/NotesEditor";
 import { HabitTracker } from "@/components/HabitTracker";
-import { CheckSquare, FileText, Target, BarChart3, TrendingUp, Clock, MessageSquare, Zap, Calendar, Users, Menu } from "lucide-react";
+import { CheckSquare, FileText, Target, BarChart3, TrendingUp, Clock, MessageSquare, Zap, Calendar, Users, Menu, LogOut, User } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export const Dashboard = () => {
   const [activeView, setActiveView] = useState<"overview" | "todos" | "notes" | "habits">("overview");
   const [chatMessage, setChatMessage] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
 
   const navigationItems = [
     { id: "overview", label: "Overview", icon: BarChart3 },
@@ -52,6 +59,26 @@ export const Dashboard = () => {
       console.log('Sending message:', chatMessage);
       setChatMessage("");
     }
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Signed out successfully",
+        description: "You've been signed out of your account.",
+      });
+    }
+  };
+
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
   };
 
   const renderOverviewDashboard = () => (
@@ -314,12 +341,41 @@ export const Dashboard = () => {
             Productivity
           </h1>
         </div>
-        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Menu className="w-4 h-4" />
-            </Button>
-          </SheetTrigger>
+        <div className="flex items-center space-x-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="p-2">
+                <Avatar className="w-6 h-6">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {user?.email ? getInitials(user.email) : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="flex items-center justify-start gap-2 p-2">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {user?.email ? getInitials(user.email) : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col space-y-1 leading-none">
+                  <p className="font-medium text-sm">{user?.email}</p>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Menu className="w-4 h-4" />
+              </Button>
+            </SheetTrigger>
           <SheetContent side="right" className="w-72 p-6">
             <div className="mb-6">
               <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -352,6 +408,7 @@ export const Dashboard = () => {
             </nav>
           </SheetContent>
         </Sheet>
+        </div>
       </div>
 
       {/* Mobile Tab Navigation */}
@@ -384,6 +441,34 @@ export const Dashboard = () => {
           Productivity
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Stay organized & focused</p>
+      </div>
+      
+      {/* User Profile Section */}
+      <div className="mb-6 p-3 bg-accent/50 rounded-lg">
+        <div className="flex items-center space-x-3">
+          <Avatar className="w-10 h-10">
+            <AvatarFallback className="bg-primary/10 text-primary">
+              {user?.email ? getInitials(user.email) : 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {user?.email}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Premium User
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleSignOut}
+          className="w-full mt-3 justify-start text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign out
+        </Button>
       </div>
       
       <nav className="space-y-2">
