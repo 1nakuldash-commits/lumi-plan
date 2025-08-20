@@ -3,27 +3,22 @@ import { Card } from "@/components/ui/card";
 import { TodoBoard } from "@/components/TodoBoard";
 import { NotesEditor } from "@/components/NotesEditor";
 import { HabitTracker } from "@/components/HabitTracker";
-import { CheckSquare, FileText, Target, BarChart3, TrendingUp, Clock, MessageSquare, Zap, Calendar, Users, Menu, LogOut, User } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { CheckSquare, FileText, Target, Clock, Plus, Bell, Home } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export const Dashboard = () => {
   const [activeView, setActiveView] = useState<"overview" | "todos" | "notes" | "habits">("overview");
-  const [chatMessage, setChatMessage] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
   const navigationItems = [
-    { id: "overview", label: "Overview", icon: BarChart3 },
+    { id: "overview", label: "Home", icon: Home },
     { id: "todos", label: "Tasks", icon: CheckSquare },
     { id: "notes", label: "Notes", icon: FileText },
     { id: "habits", label: "Habits", icon: Target },
@@ -46,20 +41,11 @@ export const Dashboard = () => {
     { name: 'Pending', value: 10, color: 'hsl(var(--warning))' },
   ];
 
-  const recentActivity = [
-    { id: 1, type: 'task', message: 'Completed "Review project proposal"', time: '2 min ago', icon: CheckSquare },
-    { id: 2, type: 'habit', message: 'Logged morning workout habit', time: '1 hour ago', icon: Target },
-    { id: 3, type: 'note', message: 'Created new note "Meeting insights"', time: '3 hours ago', icon: FileText },
-    { id: 4, type: 'task', message: 'Started working on "Fix authentication bug"', time: '5 hours ago', icon: Clock },
+  const quickStats = [
+    { label: "Today's Tasks", value: "12", trend: "+3", icon: CheckSquare, color: "text-primary" },
+    { label: "Streak", value: "7", trend: "days", icon: Target, color: "text-success" },
+    { label: "Focus Time", value: "4.2h", trend: "today", icon: Clock, color: "text-info" },
   ];
-
-  const handleSendMessage = () => {
-    if (chatMessage.trim()) {
-      // This would typically integrate with a real chat system
-      console.log('Sending message:', chatMessage);
-      setChatMessage("");
-    }
-  };
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -82,351 +68,220 @@ export const Dashboard = () => {
   };
 
   const renderOverviewDashboard = () => (
-    <div className="space-y-6">
-      {/* Top Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border hover:shadow-hover transition-all duration-300 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Tasks Today</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">12</p>
-              <p className="text-xs text-success flex items-center mt-1">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +20% from yesterday
-              </p>
-            </div>
-            <div className="p-2 md:p-3 bg-primary/10 rounded-full">
-              <CheckSquare className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border hover:shadow-hover transition-all duration-300 animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Habit Streak</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">7 days</p>
-              <p className="text-xs text-info flex items-center mt-1">
-                <Zap className="w-3 h-3 mr-1" />
-                Keep it up!
-              </p>
-            </div>
-            <div className="p-2 md:p-3 bg-info/10 rounded-full">
-              <Target className="w-5 h-5 md:w-6 md:h-6 text-info" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border hover:shadow-hover transition-all duration-300 animate-fade-in" style={{ animationDelay: '200ms' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Productivity</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">85%</p>
-              <p className="text-xs text-success flex items-center mt-1">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                Above average
-              </p>
-            </div>
-            <div className="p-2 md:p-3 bg-success/10 rounded-full">
-              <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-success" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border hover:shadow-hover transition-all duration-300 animate-fade-in" style={{ animationDelay: '300ms' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Focus Time</p>
-              <p className="text-xl md:text-2xl font-bold text-foreground">4.2h</p>
-              <p className="text-xs text-warning flex items-center mt-1">
-                <Clock className="w-3 h-3 mr-1" />
-                This week
-              </p>
-            </div>
-            <div className="p-2 md:p-3 bg-warning/10 rounded-full">
-              <Clock className="w-5 h-5 md:w-6 md:h-6 text-warning" />
-            </div>
-          </div>
-        </Card>
+    <div className="flex-1 px-4 pt-6 pb-20 space-y-6 max-w-md mx-auto">
+      {/* Mobile Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Good morning</h1>
+          <p className="text-sm text-muted-foreground">Let's be productive today!</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" className="p-2">
+            <Bell className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="sm" className="p-2" onClick={handleSignOut}>
+            <Avatar className="w-7 h-7">
+              <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                {user?.email ? getInitials(user.email) : 'U'}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Weekly Progress Chart */}
-        <Card className="lg:col-span-2 p-4 md:p-6 bg-card shadow-card border-border animate-fade-in" style={{ animationDelay: '400ms' }}>
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h3 className="text-base md:text-lg font-semibold text-foreground">Weekly Progress</h3>
-            <Badge variant="outline" className="text-xs">Last 7 days</Badge>
-          </div>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={weeklyProgress}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <Line 
-                type="monotone" 
-                dataKey="tasks" 
-                stroke="hsl(var(--primary))" 
-                strokeWidth={3}
-                dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="habits" 
-                stroke="hsl(var(--info))" 
-                strokeWidth={3}
-                dot={{ fill: 'hsl(var(--info))', strokeWidth: 2, r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-          <div className="flex items-center justify-center space-x-6 mt-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-primary"></div>
-              <span className="text-sm text-muted-foreground">Tasks Completed</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-info"></div>
-              <span className="text-sm text-muted-foreground">Habits Tracked</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Task Distribution */}
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border animate-fade-in" style={{ animationDelay: '500ms' }}>
-          <h3 className="text-base md:text-lg font-semibold text-foreground mb-4 md:mb-6">Task Distribution</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={taskDistribution}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={80}
-                strokeWidth={2}
-              >
-                {taskDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-2 mt-4">
-            {taskDistribution.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-sm text-muted-foreground">{item.name}</span>
+      {/* Quick Stats Cards */}
+      <div className="space-y-3">
+        {quickStats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="p-4 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-full bg-accent/20`}>
+                    <Icon className={`w-5 h-5 ${stat.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-xl font-bold text-foreground">{stat.value}</p>
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-foreground">{item.value}%</span>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">{stat.trend}</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </Card>
+            </Card>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Activity Feed */}
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border animate-fade-in" style={{ animationDelay: '600ms' }}>
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h3 className="text-base md:text-lg font-semibold text-foreground">Recent Activity</h3>
-            <Badge variant="outline" className="text-xs">Live</Badge>
+      {/* Weekly Progress Chart */}
+      <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Weekly Progress</h3>
+          <Badge variant="outline" className="text-xs">7 days</Badge>
+        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={weeklyProgress}>
+            <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+            <Line 
+              type="monotone" 
+              dataKey="tasks" 
+              stroke="hsl(var(--primary))" 
+              strokeWidth={2}
+              dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 3 }}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="habits" 
+              stroke="hsl(var(--success))" 
+              strokeWidth={2}
+              dot={{ fill: 'hsl(var(--success))', strokeWidth: 2, r: 3 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+        <div className="flex items-center justify-center space-x-4 mt-3">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 rounded-full bg-primary"></div>
+            <span className="text-xs text-muted-foreground">Tasks</span>
           </div>
-          <div className="space-y-3 md:space-y-4 max-h-80 overflow-y-auto">
-            {recentActivity.map((activity) => {
-              const Icon = activity.icon;
-              return (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-accent/50 transition-colors duration-200">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 rounded-full bg-success"></div>
+            <span className="text-xs text-muted-foreground">Habits</span>
           </div>
-        </Card>
+        </div>
+      </Card>
 
-        {/* Quick Actions & Chat */}
-        <Card className="p-4 md:p-6 bg-card shadow-card border-border animate-fade-in" style={{ animationDelay: '700ms' }}>
-          <h3 className="text-base md:text-lg font-semibold text-foreground mb-4 md:mb-6">Quick Actions</h3>
+      {/* Task Distribution */}
+      <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Today's Tasks</h3>
+        <ResponsiveContainer width="100%" height={140}>
+          <PieChart>
+            <Pie
+              data={taskDistribution}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={30}
+              outerRadius={60}
+              strokeWidth={2}
+            >
+              {taskDistribution.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {taskDistribution.map((item, index) => (
+            <div key={index} className="text-center">
+              <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: item.color }}></div>
+              <span className="text-xs text-muted-foreground block">{item.name}</span>
+              <span className="text-sm font-medium text-foreground">{item.value}%</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Button 
+            onClick={() => setActiveView("todos")} 
+            className="h-16 flex-col space-y-2 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 transition-all duration-200 active:scale-95"
+            variant="outline"
+          >
+            <CheckSquare className="w-5 h-5" />
+            <span className="text-xs font-medium">Add Task</span>
+          </Button>
           
-          <div className="grid grid-cols-2 gap-2 md:gap-3 mb-4 md:mb-6">
-            <Button 
-              onClick={() => setActiveView("todos")} 
-              className="h-auto p-3 md:p-4 flex-col space-y-1 md:space-y-2 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 transition-all duration-200 active:scale-95 hover:scale-105"
-              variant="outline"
-            >
-              <CheckSquare className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-xs">Add Task</span>
-            </Button>
-            
-            <Button 
-              onClick={() => setActiveView("notes")} 
-              className="h-auto p-3 md:p-4 flex-col space-y-1 md:space-y-2 bg-info/10 text-info hover:bg-info/20 border-info/20 transition-all duration-200 active:scale-95 hover:scale-105"
-              variant="outline"
-            >
-              <FileText className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-xs">New Note</span>
-            </Button>
-            
-            <Button 
-              onClick={() => setActiveView("habits")} 
-              className="h-auto p-3 md:p-4 flex-col space-y-1 md:space-y-2 bg-success/10 text-success hover:bg-success/20 border-success/20 transition-all duration-200 active:scale-95 hover:scale-105"
-              variant="outline"
-            >
-              <Target className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-xs">Log Habit</span>
-            </Button>
-            
-            <Button 
-              className="h-auto p-3 md:p-4 flex-col space-y-1 md:space-y-2 bg-warning/10 text-warning hover:bg-warning/20 border-warning/20 transition-all duration-200 active:scale-95 hover:scale-105"
-              variant="outline"
-            >
-              <Calendar className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="text-xs">Schedule</span>
-            </Button>
-          </div>
-
-          {/* Mini Chat */}
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <MessageSquare className="w-4 h-4 text-muted-foreground" />
-              <h4 className="text-sm font-medium text-foreground">Quick Notes</h4>
-            </div>
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Jot down a quick thought..."
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                className="flex-1 text-sm"
-              />
-              <Button 
-                size="sm" 
-                onClick={handleSendMessage}
-                className="px-3 transition-all duration-200 active:scale-95 hover:scale-105"
-              >
-                Send
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
+          <Button 
+            onClick={() => setActiveView("notes")} 
+            className="h-16 flex-col space-y-2 bg-info/10 text-info hover:bg-info/20 border-info/20 transition-all duration-200 active:scale-95"
+            variant="outline"
+          >
+            <FileText className="w-5 h-5" />
+            <span className="text-xs font-medium">New Note</span>
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 
   const renderActiveView = () => {
     switch (activeView) {
       case "todos":
-        return <TodoBoard />;
+        return (
+          <div className="flex-1 px-4 pt-6 pb-20 max-w-md mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
+              <Button size="sm" className="px-3">
+                <Plus className="w-4 h-4 mr-2" />
+                Add
+              </Button>
+            </div>
+            <TodoBoard />
+          </div>
+        );
       case "notes":
-        return <NotesEditor />;
+        return (
+          <div className="flex-1 px-4 pt-6 pb-20 max-w-md mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-foreground">Notes</h1>
+              <Button size="sm" className="px-3">
+                <Plus className="w-4 h-4 mr-2" />
+                New
+              </Button>
+            </div>
+            <NotesEditor />
+          </div>
+        );
       case "habits":
-        return <HabitTracker />;
+        return (
+          <div className="flex-1 px-4 pt-6 pb-20 max-w-md mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-foreground">Habits</h1>
+              <Button size="sm" className="px-3">
+                <Plus className="w-4 h-4 mr-2" />
+                Add
+              </Button>
+            </div>
+            <HabitTracker />
+          </div>
+        );
       default:
         return renderOverviewDashboard();
     }
   };
 
-  const MobileNavigation = () => (
-    <div className="lg:hidden">
-      {/* Mobile Header */}
-      <div className="flex items-center justify-between p-4 bg-card border-b border-border">
-        <div>
-          <h1 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Productivity
-          </h1>
-        </div>
-        <div className="flex items-center space-x-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="p-2">
-                <Avatar className="w-6 h-6">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                    {user?.email ? getInitials(user.email) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="flex items-center justify-start gap-2 p-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {user?.email ? getInitials(user.email) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium text-sm">{user?.email}</p>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Menu className="w-4 h-4" />
-              </Button>
-            </SheetTrigger>
-          <SheetContent side="right" className="w-72 p-6">
-            <div className="mb-6">
-              <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Productivity
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">Stay organized & focused</p>
-            </div>
-            
-            <nav className="space-y-2">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveView(item.id as any);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 ${
-                      activeView === item.id
-                        ? "bg-primary text-primary-foreground shadow-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </SheetContent>
-        </Sheet>
-        </div>
-      </div>
-
-      {/* Mobile Tab Navigation */}
-      <div className="flex bg-card border-b border-border overflow-x-auto">
+  // Mobile-first navigation component
+  const MobileBottomNavigation = () => (
+    <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/50 z-50 safe-area-pb">
+      <div className="grid grid-cols-4 h-16">
         {navigationItems.map((item) => {
           const Icon = item.icon;
+          const isActive = activeView === item.id;
+          
           return (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id as any)}
-              className={`flex-1 min-w-0 flex flex-col items-center space-y-1 p-3 transition-all duration-200 ${
-                activeView === item.id
-                  ? "bg-primary/10 text-primary border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              className={`flex flex-col items-center justify-center space-y-1 transition-all duration-200 ${
+                isActive
+                  ? "text-primary transform scale-110"
+                  : "text-muted-foreground hover:text-foreground active:scale-95"
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span className="text-xs font-medium truncate">{item.label}</span>
+              <div className={`relative ${isActive ? "animate-pulse" : ""}`}>
+                <Icon className="w-5 h-5" />
+                {isActive && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-ping" />
+                )}
+              </div>
+              <span className={`text-xs font-medium ${isActive ? "font-semibold" : ""}`}>
+                {item.label}
+              </span>
             </button>
           );
         })}
@@ -434,92 +289,59 @@ export const Dashboard = () => {
     </div>
   );
 
+  // Desktop fallback - simple layout for larger screens
   const DesktopNavigation = () => (
-    <div className="hidden lg:block w-64 bg-card border-r border-border p-6 min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          Productivity
+    <div className="hidden lg:block">
+      <div className="flex items-center justify-between p-4 bg-card border-b border-border">
+        <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          Productivity Mobile
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Stay organized & focused</p>
-      </div>
-      
-      {/* User Profile Section */}
-      <div className="mb-6 p-3 bg-accent/50 rounded-lg">
         <div className="flex items-center space-x-3">
-          <Avatar className="w-10 h-10">
-            <AvatarFallback className="bg-primary/10 text-primary">
-              {user?.email ? getInitials(user.email) : 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user?.email}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Premium User
-            </p>
-          </div>
+          <Button variant="ghost" size="sm" onClick={handleSignOut}>
+            <Avatar className="w-6 h-6 mr-2">
+              <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                {user?.email ? getInitials(user.email) : 'U'}
+              </AvatarFallback>
+            </Avatar>
+            Sign Out
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSignOut}
-          className="w-full mt-3 justify-start text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign out
-        </Button>
       </div>
-      
-      <nav className="space-y-2">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id as any)}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${
-                activeView === item.id
-                  ? "bg-primary text-primary-foreground shadow-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <div className="flex justify-center p-4">
+        <div className="flex space-x-2 bg-accent/20 p-1 rounded-lg">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveView(item.id as any)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 ${
+                  activeView === item.id
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex flex-col lg:flex-row">
-        <MobileNavigation />
-        <DesktopNavigation />
-
-        {/* Main Content */}
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-6 md:mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground capitalize">
-                {activeView}
-              </h2>
-              <p className="text-muted-foreground mt-1 md:mt-2">
-                {activeView === "overview" && "Your productivity at a glance"}
-                {activeView === "todos" && "Manage your tasks efficiently"}
-                {activeView === "notes" && "Capture your thoughts and ideas"}
-                {activeView === "habits" && "Build better daily habits"}
-              </p>
-            </div>
-            
-            <div className="animate-fade-in">
-              {renderActiveView()}
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <DesktopNavigation />
+      
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col lg:mx-auto lg:max-w-md">
+        {renderActiveView()}
+      </main>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNavigation />
     </div>
   );
 };
